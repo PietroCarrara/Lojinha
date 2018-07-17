@@ -9,7 +9,11 @@
  * @license MIT
  */
 
-// require_once __DIR__ . '/vendor/autoload.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require 'rb-mysql.php';
 
 echo $_SERVER['REQUEST_URI'] . '<br>';
 
@@ -17,20 +21,21 @@ $hostname = "127.0.0.1";
 $user = "lojinha";
 $pass = "password";
 $db = "test";
-$conexao = new mysqli($hostname,$user,$pass,$db);
 
-echo $conexao->error;
-echo $conexao->connect_error;
+R::setup("mysql:host=$hostname;dbname=$db", "$user", "$pass");
 
-echo '<br><br>';
+$name = str_shuffle("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-$result = $conexao->query('SELECT * FROM users');
+// Cria um objeto do tipo post.
+$post = R::dispense( 'post' );
+$post->title = $name;
+R::store( $post );
 
+// Procura por todos os posts
+$posts = R::find('post');
 
-while ($row = $result->fetch_object()){
-	foreach($row as $k => $v) {
-		echo "$k: $v <br>";
-	}
+foreach($posts as $p) {
+	echo "$p->title <br>";
 }
 
 ?>
