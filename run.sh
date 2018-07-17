@@ -16,6 +16,14 @@ docker volume create database
 
 docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER=$project -e MYSQL_PASSWORD=password -d greyltc/lamp
 
+# Habilitar reescrita de rotas
+docker exec -it "$project"_lamp /bin/bash -c "sed -i '/AllowOverride None/s/None/All/g' /etc/httpd/conf/httpd.conf" 
+docker exec -it "$project"_lamp /bin/bash -c "sed -i '/AllowOverride None/s/none/All/g' /etc/httpd/conf/httpd.conf" 
+docker exec -it "$project"_lamp /bin/bash -c "pkill httpd"   
+sleep 1
+docker exec -it "$project"_lamp /bin/bash -c "httpd"   
+
+
 docker run --name "$project"_myadmin --rm --link "$project"_lamp:db -p 8000:80 -d phpmyadmin/phpmyadmin
 
 echo -e "The project ${Red}$project${Clear} is beign run..."
