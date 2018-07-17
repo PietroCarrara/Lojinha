@@ -14,7 +14,7 @@ project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]')
 # Salvar o banco
 docker volume create database
 
-docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -e MYSQL_USER=$project -e MYSQL_PASSWORD=password -d greyltc/lamp
+docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER=$project -e MYSQL_PASSWORD=password -d greyltc/lamp
 
 docker run --name "$project"_myadmin --rm --link "$project"_lamp:db -p 8000:80 -d phpmyadmin/phpmyadmin
 
