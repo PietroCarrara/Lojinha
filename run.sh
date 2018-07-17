@@ -32,6 +32,6 @@ echo -e "MySQL Password: ${Blue}password${Clear}"
 
 echo -e "Press ${Purple}return${Clear} to stop docker..."
 
-read 2
+read nothing
 
 docker kill lojinha_lamp lojinha_myadmin
