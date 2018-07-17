@@ -32,13 +32,13 @@ project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
 # Salvar o banco
 docker volume create database
 
-if [[ $host == false ]]; then
+if [[ $host_mode == false ]]; then
 	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d aufgfua/lamp:run
 else
 	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d aufgfua/lamp:run
 fi
 
-if [[ $host == false ]]; then
+if [[ $host_mode == false ]]; then
 	docker run --name "$project"_myadmin --rm --link "$project"_lamp:db -p 8000:80 -d phpmyadmin/phpmyadmin
 fi
 
@@ -52,6 +52,6 @@ read nothing
 
 docker kill lojinha_lamp
 
-if [[ $host == false ]]; then
+if [[ $host_mode == false ]]; then
 	docker kill lojinha_myadmin
 fi
