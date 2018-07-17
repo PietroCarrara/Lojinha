@@ -1,7 +1,3 @@
-<<<<<<< HEAD
- 
-asdfasfd
-=======
 <?php
 /**
  * A home de um novo começo
@@ -35,4 +31,3 @@ while ($row = $result->fetch_object()){
 }
 
 ?>
->>>>>>> 74a45d96b3d793eeb19e8cc1bcd84a49837ad3a5
