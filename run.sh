@@ -11,16 +11,28 @@ Cyan='\033[0;36m'
 LightGray='\033[0;37m'
 Clear='\033[0m'
 
+source ./src/.env
+
 usage() {
 	echo "$0 [--host] [--help]"
 	echo -e "\t--host:  roda o ambiente LAMP sem o PHPMyAdmin nem a docker bridge"
 	echo -e "\t--build: compila a dockerfile e usa ela para o ambiente LAMP"
+	echo -e "\t--clear: limpa o banco de dados (tabelas, usuários, databases...)"
 	echo -e "\t--help:  mostra esse texto"
 }
 
 if [[ "$@" == *"--help"* ]]; then
 	usage
 	exit 0
+fi
+
+if [[ "$@" = *"--clear"* ]]; then
+	echo -e "${Red}WARNING:${Clear} Você está prestes a limpar toda a base de dados. Seus dados ${Red}NÃO${Clear} poderão ser recuperados. Continuar? [s/N]"
+	read conf
+	if [[ $conf = s ]]; then
+		echo "Limpando..."
+		docker volume rm database
+	fi
 fi
 
 host_mode=false
@@ -40,17 +52,17 @@ fi
 
 project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
 
+if [ -z "$MYSQL_PASSWORD" ]; then
+	MYSQL_PASSWORD=password
+fi
+
 # Salvar o banco
-# TODO: Executar as instruções no banco:
-# create database $project;
-# delete from mysql.user where User != '$project';
-# flush privileges;
 docker volume create database
 
 if [[ $host_mode == false ]]; then
-	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d "$lamp_image"
+	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD="$MYSQL_PASSWORD" -d "$lamp_image"
 else
-	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d "$lamp_image"
+	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD="$MYSQL_PASSWORD" -d "$lamp_image"
 fi
 
 if [[ $host_mode == false ]]; then
@@ -59,7 +71,7 @@ fi
 
 echo -e "The project ${Red}$project${Clear} is beign run..."
 echo -e "MySQL Username: ${Green}$project${Clear}"
-echo -e "MySQL Password: ${Blue}password${Clear}"
+echo -e "MySQL Password: ${Blue}$MYSQL_PASSWORD${Clear}"
 
 echo -e "Press ${Purple}return${Clear} to stop docker..."
 
