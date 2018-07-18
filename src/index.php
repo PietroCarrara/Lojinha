@@ -8,8 +8,9 @@ error_reporting(E_ALL);
 require_once 'vendor/autoload.php';
 require 'rb-mysql.php';
 
+/*
 echo $_SERVER['REQUEST_URI'] . '<br>';
-
+*/
 // Carregar .env
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
@@ -21,6 +22,7 @@ $db = "lojinha";
 
 R::setup("mysql:host=$hostname;dbname=$db", "$user", "$pass");
 
+/*
 $name = str_shuffle("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 // Cria um objeto do tipo post.
@@ -30,9 +32,25 @@ R::store( $post );
 
 // Procura por todos os posts
 $posts = R::find('post');
-
+*/
+/*
 foreach($posts as $p) {
 	echo "$p->title <br>";
 }
+*/
+
+$request_uri = explode('?', $_SERVER['REQUEST_URI'], 2);
+
+switch ($request_uri[0]) {
+    // Home page
+    case '/':
+        require 'home.php';
+        break;
+    // About page
+    case '/produtos':
+        require 'produtos.php';
+        break;
+}
+
 
 ?>
