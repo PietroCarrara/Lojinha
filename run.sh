@@ -11,7 +11,10 @@ Cyan='\033[0;36m'
 LightGray='\033[0;37m'
 Clear='\033[0m'
 
-source ./src/.env
+
+if [ -f ./src/.env ]; then
+    source ./src/.env
+fi
 
 usage() {
 	echo "$0 [--host] [--help]"
@@ -26,11 +29,12 @@ if [[ "$@" == *"--help"* ]]; then
 	exit 0
 fi
 
-if [[ "$@" = *"--clear"* ]]; then
+if [[ "$@" == *"--clear"* ]]; then
 	echo -e "${Red}WARNING:${Clear} Você está prestes a limpar toda a base de dados. Seus dados ${Red}NÃO${Clear} poderão ser recuperados. Continuar? [s/N]"
 	read conf
-	if [[ $conf = s ]]; then
-		echo "Limpando..."
+	if [[ $conf == s ]]; then
+		echo "Limp
+		ando..."
 		docker volume rm database
 	fi
 fi
@@ -59,21 +63,32 @@ fi
 # Salvar o banco
 docker volume create database
 
-if [[ $host_mode == false ]]; then
-	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD="$MYSQL_PASSWORD" -d "$lamp_image"
-else
+if [[ $host_mode == true ]]; then
 	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD="$MYSQL_PASSWORD" -d "$lamp_image"
+else
+	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD="$MYSQL_PASSWORD" -d "$lamp_image"
+    docker run --name "$project"_myadmin --rm --link "$project"_lamp:db -p 8000:80 -d phpmyadmin/phpmyadmin
+
 fi
 
-if [[ $host_mode == false ]]; then
-	docker run --name "$project"_myadmin --rm --link "$project"_lamp:db -p 8000:80 -d phpmyadmin/phpmyadmin
+
+# Posso ser mt viajado, mas acho q precisa instalar com o composer
+
+if [ ! -f '.comp' ]; then
+    cd src
+    composer install
+    cd ..
+    touch '.comp'
 fi
+
+
 
 echo -e "The project ${Red}$project${Clear} is beign run..."
 echo -e "MySQL Username: ${Green}$project${Clear}"
 echo -e "MySQL Password: ${Blue}$MYSQL_PASSWORD${Clear}"
 
 echo -e "Press ${Purple}return${Clear} to stop docker..."
+
 
 read nothing
 
