@@ -13,8 +13,9 @@ Clear='\033[0m'
 
 usage() {
 	echo "$0 [--host] [--help]"
-	echo -e "\t--host: roda o ambiente LAMP sem o PHPMyAdmin nem a docker bridge"
-	echo -e "\t--help: mostra esse texto"
+	echo -e "\t--host:  roda o ambiente LAMP sem o PHPMyAdmin nem a docker bridge"
+	echo -e "\t--build: compila a dockerfile e usa ela para o ambiente LAMP"
+	echo -e "\t--help:  mostra esse texto"
 }
 
 if [[ "$@" == *"--help"* ]]; then
@@ -27,15 +28,29 @@ if [[ "$@" = *"--host"* ]]; then
 	host_mode=true
 fi
 
+lamp_image='aufgfua/lamp:run'
+if [[ "$@" = *"--build"* ]]; then
+	lamp_image='tmp_lamp'
+	if [[ $host_mode = true ]]; then
+		docker build -t tmp_lamp --network=host .
+	else
+		docker build -t tmp_lamp .
+	fi
+fi
+
 project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
 
 # Salvar o banco
+# TODO: Executar as instruções no banco:
+# create database $project;
+# delete from mysql.user where User != '$project';
+# flush privileges;
 docker volume create database
 
 if [[ $host_mode == false ]]; then
-	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d aufgfua/lamp:run
+	docker run -p 3306:3306 -p 443:443 --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d "$lamp_image"
 else
-	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d aufgfua/lamp:run
+	docker run --net=host --name "$project"_lamp --rm --mount 'source=database,target=/var/lib/mysql' -v "$PWD/src":/srv/http -e MYSQL_USER="$project" -e MYSQL_PASSWORD=password -d "$lamp_image"
 fi
 
 if [[ $host_mode == false ]]; then

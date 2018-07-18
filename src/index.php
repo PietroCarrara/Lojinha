@@ -20,7 +20,7 @@ echo $_SERVER['REQUEST_URI'] . '<br>';
 $hostname = "127.0.0.1";
 $user = "lojinha";
 $pass = "password";
-$db = "test";
+$db = "lojinha";
 
 R::setup("mysql:host=$hostname;dbname=$db", "$user", "$pass");
 
