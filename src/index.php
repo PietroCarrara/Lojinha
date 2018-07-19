@@ -15,38 +15,27 @@ use Phroute\Phroute\Dispatcher;
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
+// Banco
 $hostname = "127.0.0.1";
 $user = "lojinha";
 $pass = getenv('MYSQL_PASSWORD');
 $db = "lojinha";
 R::setup("mysql:host=$hostname;dbname=$db", "$user", "$pass");
 
+# Sessão
+session_start();
+
 # Definir as rotas
 # TODO: Definir essas funções em outros arquivos pra ficar bonito
-$collector = new RouteCollector();
-$collector->any('/', function(){
-	echo 'test 1';
-});
-$collector->any('/products', function(){
-	$name = str_shuffle("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+$router = new RouteCollector();
 
-	// Cria um objeto do tipo post.
-	$post = R::dispense( 'post' );
-	$post->title = $name;
-	R::store( $post );
-
-	// Procura por todos os posts
-	$posts = R::find('post');
-	foreach($posts as $p) {
-		echo "$p->title <br>";
-	}
-});
-$collector->any('/items/{id}', function($id){
-	echo "test item: $id";
-});
+include 'routes/home.php';
+include 'routes/login.php';
+include 'routes/register.php';
+include 'routes/logout.php';
 
 # Preparar o cara que escolhe a rota certa
-$dispatcher = new Dispatcher($collector->getData());
+$dispatcher = new Dispatcher($router->getData());
 # Escolher a rota
 $dispatcher->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
 

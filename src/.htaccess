@@ -1,8 +1,10 @@
 # Turn rewriting on
 Options +FollowSymLinks
 RewriteEngine On
+
+# Permitir arquivos estáticos
+RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|\.woff|robots\.txt)
+
 # Redirect requests to index.php
-ErrorDocument 404 /index.php
-RewriteCond %{REQUEST_URI} !(public|css)
-RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt)$ [NC]
-# RewriteRule ^(.*)$ index.php?params=$1 [L,QSA]
+RewriteCond %{REQUEST_URI} !=/index.php
+RewriteRule .* /index.php
